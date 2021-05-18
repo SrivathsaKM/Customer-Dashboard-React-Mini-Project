@@ -25,6 +25,7 @@
     <script src="https://unpkg.com/@material-ui/core@latest/umd/material-ui.development.js"></script>
     <script src="https://unpkg.com/@material-ui/core@latest/umd/material-ui.production.min.js"></script>
     <script src="https://unpkg.com/react-minimal-pie-chart/dist/index.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="jspdf.js"></script>
     <script src="autotable.js"></script>
 
@@ -99,43 +100,82 @@
       const PieChartGraph = (props) => {
         const { orderCount } = props;
         const classes = useStyles();
-        //For Pie Chart
+
         //const colors = ['#4A154B', '#64C3EB', '#5BB381', '#E3834C', '#CE375C'];
-        const colors = ['#4285F4', '#DB4437', '#F4B400', '#0F9D58', '#E3834C'];
-        const data = orderCount.map((order, idx) => {
-          //console.log(typeof order);
-          return {
-            title: `${idx + 1} Order(s)`,
-            value: order,
-            color: colors[idx],
-            key: idx + 1,
-            label: order,
-          };
+        //For React Minimal Pie Chart
+        // const colors = ['#4285F4', '#DB4437', '#F4B400', '#0F9D58', '#E3834C'];
+        // const data = orderCount.map((order, idx) => {
+        //   //console.log(typeof order);
+        //   return {
+        //     title: `${idx + 1} Order(s)`,
+        //     value: order,
+        //     color: colors[idx],
+        //     key: idx + 1,
+        //     label: order,
+        //   };
+        // });
+
+        google.charts.load('current', { packages: ['corechart'] });
+        google.charts.setOnLoadCallback(drawChart);
+
+        //console.log(orderCount);
+        const chartData = [['Order', 'No. of Customers']];
+        orderCount.forEach((ele, idx) => {
+          chartData.push([idx === 4 ? '5+ order(s)' : `${idx + 1} order(s)`, ele]);
         });
 
+        function drawChart() {
+          console.log(chartData);
+          const data = google.visualization.arrayToDataTable(chartData);
+          const options = {
+            title: 'Distribution Graph',
+            is3D: true,
+            backgroundColor: 'transparent',
+            width: 600,
+            height: 300,
+            pieSliceTextStyle: { fontSize: 16 },
+            legend: { /*position: 'bottom' */ textStyle: { fontSize: 16 } },
+            titleTextStyle: { fontSize: 20, color: 'rgb(72, 167, 212)', fontWeight: 'bold' },
+            chartArea: {
+              left: '3%',
+              top: '10%',
+              height: '94%',
+              width: '94%',
+            },
+          };
+
+          const chart = new google.visualization.PieChart(document.getElementById('piechart'));
+
+          chart.draw(data, options);
+        }
+
         return (
-          <Grid item xs={12} sm={5}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-              <PieChart
-                dataKey='value'
-                data={data}
-                //segmentsShift={5}
-                segmentsStyle={{ transition: 'stroke .3s' }}
-                label={(props) => {
-                  return props.dataEntry.label;
-                }}
-                labelStyle={{
-                  fontSize: '10px',
-                  fontColor: 'FFF',
-                  fontWeight: '800',
-                }}
-                labelPosition={65}
-                lengthAngle={360}
-                viewBoxSize={[100, 100]}
-                style={{ width: '50%' }}
-              />
-            </div>
-          </Grid>
+          <React.Fragment>
+            <Grid item xs={0} sm={1}></Grid>
+            <Grid item xs={12} sm={5}>
+              {/*  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                    <PieChart
+                      dataKey='value'
+                      data={data}
+                      //segmentsShift={5}
+                      segmentsStyle={{ transition: 'stroke .3s' }}
+                      label={(props) => {
+                        return props.dataEntry.label;
+                      }}
+                      labelStyle={{
+                        fontSize: '10px',
+                        fontColor: 'FFF',
+                        fontWeight: '800',
+                      }}
+                      labelPosition={65}
+                      lengthAngle={360}
+                      viewBoxSize={[100, 100]}
+                      style={{ width: '50%' }}
+                    />
+                    </div> */}
+              <div id='piechart' /*style={{ width: '100%', height: '100%' }}*/></div>
+            </Grid>
+          </React.Fragment>
         );
       };
       /* PieChart Graph Component ends here  */
@@ -145,7 +185,7 @@
         const { orderCount } = props;
         const classes = useStyles();
         return (
-          <Grid item xs={12} sm={7}>
+          <Grid item xs={12} sm={6}>
             {orderCount.length > 0 && (
               <TableContainer component={Paper}>
                 <Table style={{ width: '100%' }} aria-label='simple table'>
@@ -267,8 +307,8 @@
                 </Grid>
                 <Grid container>
                   {/*<Grid item xs={12} sm={7}>
-                                  <Paper className={classes.paper}></Paper>
-                              </Grid >*/}
+                                        <Paper className={classes.paper}></Paper>
+                                    </Grid >*/}
                   <Grid item xs={12} className={classes.innerTable}>
                     <strong>Total Amount(INR):</strong> {totalAmount()}
                   </Grid>
@@ -327,6 +367,9 @@
         const [namePhone, setNamePhone] = useState({});
         const [orders, setOrders] = useState([]);
 
+        const [data, setData] = useState(filteredCustomers);
+        const [status, setStatus] = useState(false);
+
         const handleClick = (users) => {
           //console.log(users);
           const { Name, Phone } = users;
@@ -349,6 +392,7 @@
                   <TableRow>
                     <TableCell align='center'>#</TableCell>
                     <TableCell align='center'>Name</TableCell>
+
                     <TableCell align='center'>Phone</TableCell>
                     <TableCell align='center'>Details</TableCell>
                   </TableRow>
@@ -497,12 +541,13 @@
               }
             }
           });
-          console.log(totalUniqueCustomers);
+          //console.log(totalUniqueCustomers);
           setCustomers(totalUniqueCustomers);
         }, [allCustomers]);
 
         //Search Bar Filter
         useEffect(() => {
+          //console.log(customers); Here customer will be having all filtered customers
           const data = customers.filter((customer) => {
             return customer.Name.toLowerCase().includes(searchData.toLowerCase()) || customer.Phone.toString().includes(searchData);
           });
@@ -559,6 +604,7 @@
               <Grid item xs={12} sm={2} style={{ marginTop: '2em', marginBottom: '2em' }}>
                 <TextField id='outlined-basic' label='Search' variant='outlined' type='text' value={searchData} onChange={(e) => setSearchData(e.target.value)} style={{ backgroundColor: '#FFFFFF' }} />
               </Grid>
+
               <CustomerTable filteredCustomers={currentTable} />
               <Pagination dataPerTablePage={dataPerTablePage} totalData={filteredCustomers.length} pageCallBack={pageCallBack} currentTablePage={currentTablePage} />
               <OrderDistribution orderCount={orderCount} />
