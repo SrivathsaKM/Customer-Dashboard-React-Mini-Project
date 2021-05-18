@@ -21,6 +21,7 @@
     <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
     <script crossorigin src="https://unpkg.com/babel-standalone@6.26.0/babel.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!---->
     <script src="https://unpkg.com/@material-ui/core@latest/umd/material-ui.development.js"></script>
     <script src="https://unpkg.com/@material-ui/core@latest/umd/material-ui.production.min.js"></script>
     <script src="https://unpkg.com/react-minimal-pie-chart/dist/index.js"></script>
@@ -94,7 +95,7 @@
           marginLeft: '0.5em',
         },
       }));
-      /* PieChart Graph Component starts here  */
+      /* PieChart Graph `0Component starts here  */
       const PieChartGraph = (props) => {
         const { orderCount } = props;
         const classes = useStyles();
@@ -178,9 +179,6 @@
         const { orderCount } = props;
         // console.log(orderCount);
         const classes = useStyles();
-
-        //
-
         //To download as PDF
         const handeClickDownload = () => {
           const unit = 'pt';
@@ -228,8 +226,6 @@
                 </Button>
               </Grid>
             </Grid>
-            <OrderDistributionTable orderCount={orderCount} />
-            <PieChartGraph orderCount={orderCount} />
           </Grid>
         );
       };
@@ -331,6 +327,9 @@
         const [namePhone, setNamePhone] = useState({});
         const [orders, setOrders] = useState([]);
 
+        const [data, setData] = useState(filteredCustomers);
+        const [status, setStatus] = useState(false);
+
         const handleClick = (users) => {
           //console.log(users);
           const { Name, Phone } = users;
@@ -352,7 +351,11 @@
                 <TableHead className={classes.tableHead}>
                   <TableRow>
                     <TableCell align='center'>#</TableCell>
-                    <TableCell align='center'>Name</TableCell>
+                    <TableCell align='center'>
+                      <button>Up</button>
+                      <button>Back</button>
+                    </TableCell>
+
                     <TableCell align='center'>Phone</TableCell>
                     <TableCell align='center'>Details</TableCell>
                   </TableRow>
@@ -501,12 +504,13 @@
               }
             }
           });
-          // console.log(totalUniqueCustomers);
+          //console.log(totalUniqueCustomers);
           setCustomers(totalUniqueCustomers);
         }, [allCustomers]);
 
         //Search Bar Filter
         useEffect(() => {
+          //console.log(customers); Here customer will be having all filtered customers
           const data = customers.filter((customer) => {
             return customer.Name.toLowerCase().includes(searchData.toLowerCase()) || customer.Phone.toString().includes(searchData);
           });
@@ -517,16 +521,27 @@
         //Order Distribution
         useEffect(() => {
           const count = [];
-          const oneOrder = customers.map((ele) => ele.Orders.length === 1).filter((e) => e).length;
-          count.push(oneOrder);
-          const twoOrders = customers.map((ele) => ele.Orders.length === 2).filter((e) => e).length;
-          count.push(twoOrders);
-          const threeOrders = customers.map((ele) => ele.Orders.length === 3).filter((e) => e).length;
-          count.push(threeOrders);
-          const fourOrders = customers.map((ele) => ele.Orders.length === 4).filter((e) => e).length;
-          count.push(fourOrders);
-          const fourPlusOrders = customers.map((ele) => ele.Orders.length > 4).filter((e) => e).length;
-          count.push(fourOrders);
+          // const oneOrder = customers.map((ele) => ele.Orders.length === 1).filter((e) => e).length;
+          // count.push(oneOrder);
+          // const twoOrders = customers.map((ele) => ele.Orders.length === 2).filter((e) => e).length;
+          // count.push(twoOrders);
+          // const threeOrders = customers.map((ele) => ele.Orders.length === 3).filter((e) => e).length;
+          // count.push(threeOrders);
+          // const fourOrders = customers.map((ele) => ele.Orders.length === 4).filter((e) => e).length;
+          // count.push(fourOrders);
+          // const fourPlusOrders = customers.map((ele) => ele.Orders.length > 4).filter((e) => e).length;
+          // count.push(fourOrders);
+          // setOrderCount(count);
+          const oneOrder = customers.filter((ele) => ele.Orders.length === 1);
+          count.push(oneOrder.length);
+          const twoOrders = customers.filter((ele) => ele.Orders.length === 2);
+          count.push(twoOrders.length);
+          const threeOrders = customers.filter((ele) => ele.Orders.length === 3);
+          count.push(threeOrders.length);
+          const fourOrders = customers.filter((ele) => ele.Orders.length === 4);
+          count.push(fourOrders.length);
+          const fourPlusOrders = customers.filter((ele) => ele.Orders.length > 4);
+          count.push(fourOrders.length);
           setOrderCount(count);
         }, [customers]);
 
@@ -543,20 +558,22 @@
         return (
           <React.Fragment>
             <Grid item container style={{ marginTop: '2em', marginBottom: '2em' }}>
-              <Grid item xs={0} sm={10}>
+              <Grid item xs={0} sm={10} style={{ marginTop: '2em', marginBottom: '2em' }}>
                 <Typography variant='h3' component='h2' style={{ color: '#48A7D4', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase' }}>
                   Listing Customers - {filteredCustomers.length}
                 </Typography>
               </Grid>
 
-              <Grid item xs={12} sm={2}>
+              <Grid item xs={12} sm={2} style={{ marginTop: '2em', marginBottom: '2em' }}>
                 <TextField id='outlined-basic' label='Search' variant='outlined' type='text' value={searchData} onChange={(e) => setSearchData(e.target.value)} style={{ backgroundColor: '#FFFFFF' }} />
               </Grid>
-            </Grid>
 
-            <CustomerTable filteredCustomers={currentTable} />
-            <Pagination dataPerTablePage={dataPerTablePage} totalData={filteredCustomers.length} pageCallBack={pageCallBack} currentTablePage={currentTablePage} />
-            <OrderDistribution orderCount={orderCount} />
+              <CustomerTable filteredCustomers={currentTable} />
+              <Pagination dataPerTablePage={dataPerTablePage} totalData={filteredCustomers.length} pageCallBack={pageCallBack} currentTablePage={currentTablePage} />
+              <OrderDistribution orderCount={orderCount} />
+              <OrderDistributionTable orderCount={orderCount} />
+              <PieChartGraph orderCount={orderCount} />
+            </Grid>
           </React.Fragment>
         );
       };
@@ -624,6 +641,7 @@
                 </Grid>
               </Card>
             </Grid>
+
             <Grid item xs={12} sm={4}>
               <Card style={{ display: 'flex', backgroundColor: '#61A7E1' }}>
                 <Grid item xs={4}>
@@ -711,9 +729,11 @@
               </Grid>
               {/* Site Orders  Ends here */}
 
+              {/* Footer Starts here */}
               <Grid item xs={12}>
                 <Footer />
               </Grid>
+              {/* Footer  Ends here */}
             </Grid>
           </React.Fragment>
         );
